@@ -1,49 +1,41 @@
 import { createContext, useContext, useState } from "react";
+// Import the default export from usersService
 import usersService from "../services/usersService";
 
-export const authContext = createContext();
-authContext.displayName = "Auth"; // how will the components plugin will show it
+export const authContext = createContext(null); // Initialize with null
+authContext.displayName = "Auth";
 
 export function AuthProvider({ children }) {
-  // const [user, setUser] = useState(usersService.getUser());
-
   const [user, setUser] = useState(() => {
+    // Use usersService.getUser
     const currentUser = usersService.getUser();
-    console.log("Current user state:", currentUser); // Debugging
+    console.log("Initial user state:", currentUser); // Debugging
     return currentUser;
   });
 
-  // const refreshUser = () => setUser(usersService.getUser());
-
+  // Use usersService.getUser
   const refreshUser = () => setUser(usersService.getUser());
 
   const login = async (credentials) => {
-    const response = await usersService.login(credentials);
-    console.log("Login response:", response.data);
-
-    refreshUser();
-    return response;
+    // Use usersService.login
+    await usersService.login(credentials);
+    refreshUser(); // Update user state after successful login
   };
 
-  // async function login(credentials) {
-  //   const response = await usersService.login(credentials); // Use usersService.login
-  //   refreshUser(); // Refresh the user state after login
-  //   return response;
-  // }
-
   const logout = () => {
+    // Use usersService.logout
     usersService.logout();
-
-    refreshUser();
+    refreshUser(); // Update user state (will become null)
   };
 
   return (
     <authContext.Provider
       value={{
-        user,
-        createUser: usersService.createUser,
+        user, // The decoded user object (_id, isBusiness, isAdmin)
         login,
         logout,
+        // Pass usersService.createUser directly
+        createUser: usersService.createUser,
       }}
     >
       {children}

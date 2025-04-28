@@ -1,6 +1,7 @@
 import "./App.css";
-
 import { Route, Routes } from "react-router";
+import { ToastContainer } from "react-toastify"; // Import ToastContainer
+import "react-toastify/dist/ReactToastify.css"; // Import CSS
 
 import Footer from "./components/footer";
 import NavBar from "./components/navbar";
@@ -9,18 +10,30 @@ import Home from "./pages/home";
 import About from "./pages/about";
 import SignIn from "./pages/signIn";
 import SignUp from "./pages/signUp";
-import SignUpBiz from "./pages/signUpBiz";
 import SignOut from "./pages/signOut";
 import MyCards from "./pages/myCards";
 import CardCreate from "./pages/cardCreate";
 import CardUpdate from "./pages/cardUpdate";
-import CardDelete from "./pages/cardDelete";
 import ProtectedRoute from "./components/common/protectedRoute";
 import FavoritesPage from "./pages/favoristes";
+import BusinessDetailsPage from "./pages/businessDetails";
+import AdminDashboard from "./pages/adminDashboard";
 
 function App() {
   return (
     <div className="min-vh-100 d-flex flex-column">
+      <ToastContainer // Add ToastContainer here
+        position="top-right"
+        autoClose={3000} // Auto close toasts after 3 seconds
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light" // Or "dark" or "colored"
+      />
       <header>
         <NavBar />
       </header>
@@ -45,7 +58,7 @@ function App() {
             }
           />
           <Route
-            path="/my-cards/edit/:id"
+            path="/edit-card/:id"
             element={
               <ProtectedRoute onlyBiz>
                 <CardUpdate />
@@ -53,13 +66,10 @@ function App() {
             }
           />
           <Route
-            path="/my-cards/delete/:id"
-            element={
-              <ProtectedRoute onlyBiz>
-                <CardDelete />
-              </ProtectedRoute>
-            }
+            path="/business-details/:id"
+            element={<BusinessDetailsPage />}
           />
+
           <Route
             path="/favorites"
             element={
@@ -68,9 +78,21 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Add route for Admin Dashboard (protected for admins) */}
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute onlyAdmin>
+                {" "}
+                {/* Use onlyAdmin prop */}
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
-          <Route path="/sign-up-biz" element={<SignUpBiz />} />
           <Route path="/sign-out" element={<SignOut />} />
         </Routes>
       </main>

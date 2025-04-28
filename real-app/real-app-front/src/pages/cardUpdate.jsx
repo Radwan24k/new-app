@@ -1,449 +1,77 @@
-// import cardsService from "../services/cardsService";
-// import { useEffect, useState } from "react";
-// import { useNavigate, useParams } from "react-router";
-// import Joi from "joi";
-// import { useFormik } from "formik";
-
-// import PageHeader from "../components/common/pageHeader";
-// import Input from "../components/common/input";
-// import useCard from "../hooks/useCard";
-
-// function CardUpdate() {
-//   const { id } = useParams();
-//   const card = useCard(id);
-
-//   const [serverError, setServerError] = useState("");
-//   const navigate = useNavigate();
-
-//   const form = useFormik({
-//     validateOnMount: true,
-//     initialValues: {
-//       bizName: "",
-//       bizDescription: "",
-//       bizAddress: "",
-//       bizPhone: "",
-//       bizImage: "",
-//     },
-
-//     validate(values) {
-//       const schema = Joi.object({
-//         bizName: Joi.string().min(2).max(255).required().label("Name"),
-//         bizDescription: Joi.string()
-//           .min(2)
-//           .max(1024)
-//           .required()
-//           .label("Description"),
-//         bizAddress: Joi.string().min(2).max(400).required().label("Address"),
-//         bizPhone: Joi.string()
-//           .min(9)
-//           .max(10)
-//           .required()
-//           .regex(/^0[2-9]\d{7,8}$/)
-//           .label("Phone"),
-//         bizImage: Joi.string().min(11).max(1024).label("Image").allow(""),
-//       });
-
-//       const { error } = schema.validate(values, { abortEarly: false });
-
-//       if (!error) {
-//         return null;
-//       }
-
-//       const errors = {};
-//       for (const detail of error.details) {
-//         errors[detail.path[0]] = detail.message;
-//       }
-
-//       return errors;
-//     },
-//     async onSubmit(values) {
-//       try {
-//         const { bizImage, ...body } = values;
-
-//         if (bizImage) {
-//           body.bizImage = bizImage;
-//         }
-
-//         await cardsService.updateCard(id, body);
-//         navigate("/my-cards");
-//       } catch (err) {
-//         if (err.response?.status === 400) {
-//           setServerError(err.response.data);
-//         }
-//       }
-//     },
-//   });
-
-// useEffect(() => {
-//   if (!card) {
-//     return;
-//   }
-
-//   form.setValues({
-//     bizName: card.data.bizName,
-//     bizDescription: card.data.bizDescription,
-//     bizAddress: card.data.bizAddress,
-//     bizPhone: card.data.bizPhone,
-//     bizImage: card.data.bizImage,
-//   });
-// }, [card]);
-
-//   useEffect(() => {
-//     if (!card) {
-//       return;
-//     }
-
-//     form.setValues({
-//       bizName: card.data?.bizName || "",
-//       bizDescription: card.data?.bizDescription || "",
-//       bizAddress: card.data?.bizAddress || "",
-//       bizPhone: card.data?.bizPhone || "",
-//       bizImage: card.data?.bizImage || "",
-//     });
-//   }, [card]);
-
-//   return (
-//     <div className="container">
-//       <PageHeader title="Update Card" />
-
-//       <form onSubmit={form.handleSubmit}>
-//         {serverError && <div className="alert alert-danger">{serverError}</div>}
-
-//         <Input
-//           {...form.getFieldProps("bizName")}
-//           type="text"
-//           label="Name"
-//           required
-//           error={form.touched.bizName && form.errors.bizName}
-//         />
-//         <Input
-//           {...form.getFieldProps("bizDescription")}
-//           type="text"
-//           label="Description"
-//           required
-//           error={form.touched.bizDescription && form.errors.bizDescription}
-//         />
-//         <Input
-//           {...form.getFieldProps("bizAddress")}
-//           type="text"
-//           label="Address"
-//           required
-//           error={form.touched.bizAddress && form.errors.bizAddress}
-//         />
-//         <Input
-//           {...form.getFieldProps("bizPhone")}
-//           type="text"
-//           label="Phone"
-//           required
-//           error={form.touched.bizPhone && form.errors.bizPhone}
-//         />
-//         <Input
-//           {...form.getFieldProps("bizImage")}
-//           type="text"
-//           label="Image"
-//           error={form.touched.bizImage && form.errors.bizImage}
-//         />
-
-//         <div className="my-2">
-//           <button
-//             type="submit"
-//             disabled={!form.isValid}
-//             className="btn btn-primary"
-//           >
-//             Create Card
-//           </button>
-//         </div>
-//       </form>
-//     </div>
-//   );
-// }
-// export default CardUpdate;
-
-// import cardsService from "../services/cardsService";
-// import { useEffect, useState } from "react";
-// import { useNavigate, useParams } from "react-router";
-// import Joi from "joi";
-// import { useFormik } from "formik";
-
-// import PageHeader from "../components/common/pageHeader";
-// import Input from "../components/common/input";
-// import useCard from "../hooks/useCard";
-
-// function CardUpdate() {
-//   const { id } = useParams(); // Get the card ID from the URL
-//   const card = useCard(id); // Fetch the card data using the custom hook
-
-//   const [serverError, setServerError] = useState("");
-//   const navigate = useNavigate();
-
-//   const form = useFormik({
-//     validateOnMount: true,
-//     initialValues: {
-//       title: "",
-//       subtitle: "",
-//       description: "",
-//       phone: "",
-//       email: "",
-//       web: "",
-//       image: { url: "", alt: "" },
-//       address: {
-//         state: "",
-//         country: "",
-//         city: "",
-//         street: "",
-//         houseNumber: "",
-//         zip: "",
-//       },
-//     },
-
-//     validate(values) {
-//       const schema = Joi.object({
-//         title: Joi.string().min(2).max(256).required().label("Title"),
-//         subtitle: Joi.string().min(2).max(256).required().label("Subtitle"),
-//         description: Joi.string()
-//           .min(2)
-//           .max(1024)
-//           .required()
-//           .label("Description"),
-//         phone: Joi.string().min(9).max(11).required().label("Phone"),
-//         email: Joi.string()
-//           .min(5)
-//           .required()
-//           .email({ tlds: { allow: false } }) // Disable TLD validation
-//           .label("Email"),
-//         web: Joi.string().min(14).allow("").label("Website"),
-//         image: Joi.object({
-//           url: Joi.string().min(14).required().label("Image URL"),
-//           alt: Joi.string().min(2).max(256).required().label("Image Alt"),
-//         }),
-//         address: Joi.object({
-//           state: Joi.string().allow("").label("State"),
-//           country: Joi.string().min(2).max(256).required().label("Country"),
-//           city: Joi.string().min(2).max(256).required().label("City"),
-//           street: Joi.string().min(2).max(256).required().label("Street"),
-//           houseNumber: Joi.number().min(1).required().label("House Number"),
-//           zip: Joi.number().allow("").label("Zip"),
-//         }),
-//       });
-
-//       const { error } = schema.validate(values, { abortEarly: false });
-
-//       if (!error) {
-//         return null;
-//       }
-
-//       const errors = {};
-//       for (const detail of error.details) {
-//         errors[detail.path.join(".")] = detail.message;
-//       }
-
-//       return errors;
-//     },
-
-//     async onSubmit(values) {
-//       try {
-//         console.log("Updated values:", values); // Debugging
-//         await cardsService.updateCard(id, values); // Send the updated card data
-//         console.log("Navigating to /my-cards"); // Debugging
-//         navigate("/my-cards"); // Redirect to the My Cards page
-//       } catch (err) {
-//         if (err.response?.status === 400) {
-//           setServerError(err.response.data); // Display server error
-//         }
-//       }
-//     },
-//   });
-
-//   // Pre-fill the form with the existing card data
-//   useEffect(() => {
-//     if (!card) {
-//       return;
-//     }
-
-//     form.setValues({
-//       title: card.data?.title || "",
-//       subtitle: card.data?.subtitle || "",
-//       description: card.data?.description || "",
-//       phone: card.data?.phone || "",
-//       email: card.data?.email || "",
-//       web: card.data?.web || "",
-//       image: {
-//         url: card.data?.image?.url || "",
-//         alt: card.data?.image?.alt || "",
-//       },
-//       address: {
-//         state: card.data?.address?.state || "",
-//         country: card.data?.address?.country || "",
-//         city: card.data?.address?.city || "",
-//         street: card.data?.address?.street || "",
-//         houseNumber: card.data?.address?.houseNumber || "",
-//         zip: card.data?.address?.zip || "",
-//       },
-//     });
-//   }, [card]);
-
-//   return (
-//     <div className="container">
-//       <PageHeader title="Update Card" description="Update your business card" />
-
-//       <form onSubmit={form.handleSubmit}>
-//         {serverError && <div className="alert alert-danger">{serverError}</div>}
-
-//         <Input
-//           {...form.getFieldProps("title")}
-//           type="text"
-//           label="Title"
-//           required
-//           error={form.touched.title && form.errors.title}
-//         />
-//         <Input
-//           {...form.getFieldProps("subtitle")}
-//           type="text"
-//           label="Subtitle"
-//           required
-//           error={form.touched.subtitle && form.errors.subtitle}
-//         />
-//         <Input
-//           {...form.getFieldProps("description")}
-//           type="text"
-//           label="Description"
-//           required
-//           error={form.touched.description && form.errors.description}
-//         />
-//         <Input
-//           {...form.getFieldProps("phone")}
-//           type="text"
-//           label="Phone"
-//           required
-//           error={form.touched.phone && form.errors.phone}
-//         />
-//         <Input
-//           {...form.getFieldProps("email")}
-//           type="email"
-//           label="Email"
-//           required
-//           error={form.touched.email && form.errors.email}
-//         />
-//         <Input
-//           {...form.getFieldProps("web")}
-//           type="text"
-//           label="Website"
-//           error={form.touched.web && form.errors.web}
-//         />
-//         <Input
-//           {...form.getFieldProps("image.url")}
-//           type="text"
-//           label="Image URL"
-//           required
-//           error={form.touched.image?.url && form.errors["image.url"]}
-//         />
-//         <Input
-//           {...form.getFieldProps("image.alt")}
-//           type="text"
-//           label="Image Alt"
-//           required
-//           error={form.touched.image?.alt && form.errors["image.alt"]}
-//         />
-//         <Input
-//           {...form.getFieldProps("address.state")}
-//           type="text"
-//           label="State"
-//           error={form.touched.address?.state && form.errors["address.state"]}
-//         />
-//         <Input
-//           {...form.getFieldProps("address.country")}
-//           type="text"
-//           label="Country"
-//           required
-//           error={
-//             form.touched.address?.country && form.errors["address.country"]
-//           }
-//         />
-//         <Input
-//           {...form.getFieldProps("address.city")}
-//           type="text"
-//           label="City"
-//           required
-//           error={form.touched.address?.city && form.errors["address.city"]}
-//         />
-//         <Input
-//           {...form.getFieldProps("address.street")}
-//           type="text"
-//           label="Street"
-//           required
-//           error={form.touched.address?.street && form.errors["address.street"]}
-//         />
-//         <Input
-//           {...form.getFieldProps("address.houseNumber")}
-//           type="number"
-//           label="House Number"
-//           required
-//           error={
-//             form.touched.address?.houseNumber &&
-//             form.errors["address.houseNumber"]
-//           }
-//         />
-//         <Input
-//           {...form.getFieldProps("address.zip")}
-//           type="number"
-//           label="Zip"
-//           error={form.touched.address?.zip && form.errors["address.zip"]}
-//         />
-
-//         <div className="my-2">
-//           <button
-//             type="submit"
-//             disabled={!form.isValid}
-//             className="btn btn-primary"
-//           >
-//             Update Card
-//           </button>
-//         </div>
-//       </form>
-//     </div>
-//   );
-// }
-
-// export default CardUpdate;
-
-import cardsService from "../services/cardsService";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams, Navigate } from "react-router-dom"; // Import Navigate
 import Joi from "joi";
 import { useFormik } from "formik";
+import { toast } from "react-toastify"; // Import toast
 
 import PageHeader from "../components/common/pageHeader";
 import Input from "../components/common/input";
-import useCard from "../hooks/useCard";
+// Import specific functions
+import { getCardById, updateCardById } from "../services/cardsService";
+import { useAuth } from "../context/auth.context"; // Import useAuth
 
 function CardUpdate() {
-  const { id } = useParams(); // Get the card ID from the URL
-  const card = useCard(id); // Fetch the card data using the custom hook
-
-  const [serverError, setServerError] = useState("");
+  const { id: cardId } = useParams(); // Get the card ID from the URL
+  const { user } = useAuth(); // Get current user info
+  // const [serverError, setServerError] = useState(""); // Remove serverError state
+  const [loading, setLoading] = useState(true); // State for loading card data
+  const [cardData, setCardData] = useState(null); // State to hold fetched card data
+  const [hasPermissionError, setHasPermissionError] = useState(false); // Track permission error specifically
   const navigate = useNavigate();
 
+  // Fetch card data on component mount
+  useEffect(() => {
+    const fetchCard = async () => {
+      setLoading(true); // Start loading
+      setHasPermissionError(false); // Reset permission error
+      try {
+        const { data } = await getCardById(cardId);
+        // Check permissions immediately after fetching
+        if (!user || !(user.isAdmin || user._id === data.user_id)) {
+          toast.error("You do not have permission to edit this card.");
+          setHasPermissionError(true); // Set permission error flag
+          setCardData(null); // Don't store data if no permission
+        } else {
+          setCardData(data);
+        }
+      } catch (err) {
+        console.error("Error fetching card data:", err);
+        if (err.response?.status === 404) {
+          toast.error("Card not found.");
+        } else {
+          toast.error("Failed to load card data.");
+        }
+        setCardData(null); // Ensure no stale data on error
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCard();
+  }, [cardId, user]); // Rerun if cardId or user changes
+
   const form = useFormik({
-    validateOnMount: true,
+    validateOnMount: false, // Don't validate initially, wait for data
+    enableReinitialize: true, // Allow form to reinitialize with fetched data
     initialValues: {
-      title: "",
-      subtitle: "",
-      description: "",
-      phone: "",
-      email: "",
-      web: "",
-      image: { url: "", alt: "" },
-      address: {
-        state: "",
-        country: "",
-        city: "",
-        street: "",
-        houseNumber: "",
-        zip: "",
-      },
+      // Flat structure, initialized from cardData
+      title: cardData?.title || "",
+      subtitle: cardData?.subtitle || "",
+      description: cardData?.description || "",
+      phone: cardData?.phone || "",
+      email: cardData?.email || "",
+      web: cardData?.web || "",
+      imageUrl: cardData?.image?.url || "",
+      imageAlt: cardData?.image?.alt || "",
+      state: cardData?.address?.state || "",
+      country: cardData?.address?.country || "",
+      city: cardData?.address?.city || "",
+      street: cardData?.address?.street || "",
+      houseNumber: cardData?.address?.houseNumber || "",
+      zip: cardData?.address?.zip || "",
     },
 
     validate(values) {
+      // Same validation schema as cardCreate
       const schema = Joi.object({
         title: Joi.string().min(2).max(256).required().label("Title"),
         subtitle: Joi.string().min(2).max(256).required().label("Subtitle"),
@@ -458,84 +86,108 @@ function CardUpdate() {
           .required()
           .email({ tlds: { allow: false } })
           .label("Email"),
-        web: Joi.string().min(14).allow("").label("Website"),
-        image: Joi.object({
-          url: Joi.string().min(14).required().label("Image URL"),
-          alt: Joi.string().min(2).max(256).required().label("Image Alt"),
-        }),
-        address: Joi.object({
-          state: Joi.string().allow("").label("State"),
-          country: Joi.string().min(2).max(256).required().label("Country"),
-          city: Joi.string().min(2).max(256).required().label("City"),
-          street: Joi.string().min(2).max(256).required().label("Street"),
-          houseNumber: Joi.number().min(1).required().label("House Number"),
-          zip: Joi.number().allow("").label("Zip"),
-        }),
+        web: Joi.string().min(14).uri().allow("").label("Website"),
+        imageUrl: Joi.string().min(14).uri().allow("").label("Image URL"),
+        imageAlt: Joi.string().min(2).max(256).allow("").label("Image Alt"),
+        state: Joi.string().min(2).max(256).allow("").label("State"),
+        country: Joi.string().min(2).max(256).required().label("Country"),
+        city: Joi.string().min(2).max(256).required().label("City"),
+        street: Joi.string().min(2).max(256).required().label("Street"),
+        houseNumber: Joi.number().min(1).required().label("House Number"),
+        zip: Joi.number().min(1).required().label("Zip"),
       });
 
       const { error } = schema.validate(values, { abortEarly: false });
-
-      if (!error) {
-        return null;
-      }
-
+      if (!error) return null;
       const errors = {};
       for (const detail of error.details) {
-        errors[detail.path.join(".")] = detail.message;
+        errors[detail.path[0]] = detail.message;
       }
-
       return errors;
     },
 
     async onSubmit(values) {
+      if (!cardData || hasPermissionError) return; // Prevent submission if no data or permission error
       try {
-        console.log("Updated values:", values); // Debugging
-        await cardsService.updateCard(id, values); // Send the updated card data
-        console.log("Navigating to /my-cards"); // Debugging
-        navigate("/my-cards"); // Redirect to the My Cards page
-      } catch (err) {
-        if (err.response?.status === 400) {
-          setServerError(err.response.data); // Display server error
+        // Structure data for API
+        const updatedCardData = {
+          title: values.title,
+          subtitle: values.subtitle,
+          description: values.description,
+          phone: values.phone,
+          email: values.email,
+          web: values.web || undefined,
+          image: {
+            url:
+              values.imageUrl ||
+              cardData.image?.url ||
+              "https://via.placeholder.com/300x200", // Keep original or default if empty
+            alt: values.imageAlt || cardData.image?.alt || values.title, // Keep original or default if empty
+          },
+          address: {
+            state: values.state || undefined,
+            country: values.country,
+            city: values.city,
+            street: values.street,
+            houseNumber: values.houseNumber,
+            zip: values.zip,
+          },
+        };
+        const { data } = await updateCardById(cardId, updatedCardData);
+        toast.success(`Card "${data.title}" updated successfully!`); // Success toast
+        navigate("/my-cards");
+      } catch ({ response }) {
+        // Destructure response
+        if (response && response.status === 400) {
+          toast.error(
+            response.data || "Error updating card. Please check your input."
+          ); // Error toast
+        } else if (response && response.status === 403) {
+          toast.error("You are not authorized to edit this card."); // Forbidden error
+          setHasPermissionError(true); // Set permission error flag again just in case
+        } else if (response && response.status === 404) {
+          toast.error("Card not found."); // Not found error
+        } else {
+          toast.error("An unexpected error occurred while updating the card."); // Generic error toast
+          console.error(response); // Log the error response
         }
       }
     },
   });
 
-  // Pre-fill the form with the existing card data
-  useEffect(() => {
-    if (!card) {
-      return;
-    }
+  // No need for the second useEffect to setValues, enableReinitialize handles it
 
-    form.setValues({
-      title: card.data?.title || "",
-      subtitle: card.data?.subtitle || "",
-      description: card.data?.description || "",
-      phone: card.data?.phone || "",
-      email: card.data?.email || "",
-      web: card.data?.web || "",
-      image: {
-        url: card.data?.image?.url || "",
-        alt: card.data?.image?.alt || "",
-      },
-      address: {
-        state: card.data?.address?.state || "",
-        country: card.data?.address?.country || "",
-        city: card.data?.address?.city || "",
-        street: card.data?.address?.street || "",
-        houseNumber: card.data?.address?.houseNumber || "",
-        zip: card.data?.address?.zip || "",
-      },
-    });
-  }, [card]);
+  // Handle loading state
+  if (loading) {
+    return <div>Loading card details...</div>;
+  }
+
+  // Handle case where card data failed to load or permission denied
+  if (!cardData) {
+    // Error toast was already shown in useEffect
+    return (
+      <div className="container text-center mt-4">
+        Could not load card details or access denied.
+      </div>
+    );
+  }
+
+  // Redirect if user is not logged in (should be caught by protected route ideally)
+  if (!user) {
+    return <Navigate to="/sign-in" replace />;
+  }
+
+  // Permission already checked in useEffect, form is only rendered if cardData exists
 
   return (
     <div className="container">
-      <PageHeader title="Update Card" description="Update your business card" />
+      <PageHeader
+        title="Update Card"
+        description={`Update card: ${cardData.title}`}
+      />
 
-      <form onSubmit={form.handleSubmit}>
-        {serverError && <div className="alert alert-danger">{serverError}</div>}
-
+      {/* Form is rendered only if cardData is loaded and permission was granted */}
+      <form onSubmit={form.handleSubmit} noValidate>
         <div className="row">
           {/* Left Column */}
           <div className="col-md-6">
@@ -562,7 +214,7 @@ function CardUpdate() {
             />
             <Input
               {...form.getFieldProps("phone")}
-              type="text"
+              type="tel"
               label="Phone"
               required
               error={form.touched.phone && form.errors.phone}
@@ -576,84 +228,83 @@ function CardUpdate() {
             />
             <Input
               {...form.getFieldProps("web")}
-              type="text"
+              type="url"
               label="Website"
               error={form.touched.web && form.errors.web}
+            />
+            <Input
+              {...form.getFieldProps("imageUrl")}
+              type="url"
+              label="Image URL"
+              error={form.touched.imageUrl && form.errors.imageUrl}
+            />
+            <Input
+              {...form.getFieldProps("imageAlt")}
+              type="text"
+              label="Image Alt"
+              error={form.touched.imageAlt && form.errors.imageAlt}
             />
           </div>
 
           {/* Right Column */}
           <div className="col-md-6">
             <Input
-              {...form.getFieldProps("image.url")}
-              type="text"
-              label="Image URL"
-              required
-              error={form.touched.image?.url && form.errors["image.url"]}
-            />
-            <Input
-              {...form.getFieldProps("image.alt")}
-              type="text"
-              label="Image Alt"
-              required
-              error={form.touched.image?.alt && form.errors["image.alt"]}
-            />
-            <Input
-              {...form.getFieldProps("address.state")}
+              {...form.getFieldProps("state")}
               type="text"
               label="State"
-              error={
-                form.touched.address?.state && form.errors["address.state"]
-              }
+              error={form.touched.state && form.errors.state}
             />
             <Input
-              {...form.getFieldProps("address.country")}
+              {...form.getFieldProps("country")}
               type="text"
               label="Country"
               required
-              error={
-                form.touched.address?.country && form.errors["address.country"]
-              }
+              error={form.touched.country && form.errors.country}
             />
             <Input
-              {...form.getFieldProps("address.city")}
+              {...form.getFieldProps("city")}
               type="text"
               label="City"
               required
-              error={form.touched.address?.city && form.errors["address.city"]}
+              error={form.touched.city && form.errors.city}
             />
             <Input
-              {...form.getFieldProps("address.street")}
+              {...form.getFieldProps("street")}
               type="text"
               label="Street"
               required
-              error={
-                form.touched.address?.street && form.errors["address.street"]
-              }
+              error={form.touched.street && form.errors.street}
             />
             <Input
-              {...form.getFieldProps("address.houseNumber")}
+              {...form.getFieldProps("houseNumber")}
               type="number"
               label="House Number"
               required
-              error={
-                form.touched.address?.houseNumber &&
-                form.errors["address.houseNumber"]
-              }
+              error={form.touched.houseNumber && form.errors.houseNumber}
             />
             <Input
-              {...form.getFieldProps("address.zip")}
+              {...form.getFieldProps("zip")}
               type="number"
               label="Zip"
-              error={form.touched.address?.zip && form.errors["address.zip"]}
+              required
+              error={form.touched.zip && form.errors.zip}
             />
           </div>
         </div>
 
         <div className="d-flex justify-content-between mt-4">
           <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => navigate(-1)}
+          >
+            Cancel
+          </button>
+          {/* Reset button could reset to original fetched values, requires more logic */}
+          {/* <button type="reset" className="btn btn-danger" onClick={() => form.resetForm()}>Reset Changes</button> */}
+          <button
             type="submit"
-            disabled={!form.isValid}
+            disabled={!form.isValid || !form.dirty}
             className="btn btn-primary"
           >
             Update Card

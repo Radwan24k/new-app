@@ -1,230 +1,229 @@
-// import { useState } from "react";
-// import { useFormik } from "formik";
-// import { Navigate, useNavigate } from "react-router";
-// import Joi from "joi";
-
-// import PageHeader from "../components/common/pageHeader";
-// import Input from "../components/common/input";
-// import { useAuth } from "../context/auth.context";
-
-// function SignUp() {
-//   const [serverError, setServerError] = useState("");
-
-//   const navigate = useNavigate();
-//   const { user, createUser } = useAuth();
-
-//   const { getFieldProps, handleSubmit, touched, errors, isValid } = useFormik({
-//     validateOnMount: true,
-//     initialValues: {
-//       name: "",
-//       email: "",
-//       password: "",
-//     },
-//     validate(values) {
-//       const schema = Joi.object({
-//         name: Joi.string().min(2).max(255).required().label("Name"),
-//         email: Joi.string()
-//           .min(6)
-//           .max(255)
-//           .required()
-//           .email({ tlds: false })
-//           .label("Email"),
-//         password: Joi.string().min(6).max(1024).required().label("Password"),
-//       });
-
-//       const { error } = schema.validate(values, { abortEarly: false });
-
-//       if (!error) {
-//         return null;
-//       }
-
-//       const errors = {};
-//       for (const detail of error.details) {
-//         errors[detail.path[0]] = detail.message;
-//       }
-
-//       return errors;
-//     },
-//     onSubmit: async (values) => {
-//       try {
-//         await createUser({
-//           ...values,
-//           biz: false,
-//         });
-//         navigate("/");
-//       } catch (err) {
-//         if (err.response?.status === 400) {
-//           setServerError(err.response.data);
-//         }
-//       }
-//     },
-//   });
-
-//   if (user) {
-//     return <Navigate to="/" />;
-//   }
-
-//   return (
-//     <div className="container">
-//       <PageHeader title="Sign Up" description="Sign up with a new account" />
-
-//       <div className="row justify-content-center mt-4">
-//         <div className="col-md-5">
-//           <form onSubmit={handleSubmit} noValidate autoComplete="off">
-//             {serverError && (
-//               <div className="alert alert-danger">{serverError}</div>
-//             )}
-
-//             <Input
-//               {...getFieldProps("name")}
-//               error={touched.name && errors.name}
-//               type="text"
-//               label="Name"
-//               placeholder="John Doe"
-//               required
-//             />
-//             <Input
-//               {...getFieldProps("email")}
-//               error={touched.email && errors.email}
-//               type="email"
-//               label="Email"
-//               placeholder="john@doe.com"
-//               required
-//             />
-//             <Input
-//               {...getFieldProps("password")}
-//               error={touched.password && errors.password}
-//               type="password"
-//               label="Password"
-//               required
-//             />
-
-//             <div className="my-2">
-//               <button
-//                 disabled={!isValid}
-//                 type="submit"
-//                 className="btn btn-primary"
-//               >
-//                 Sign Up
-//               </button>
-//             </div>
-//           </form>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default SignUp;
-
-import { useState } from "react";
 import { useFormik } from "formik";
 import { Navigate, useNavigate } from "react-router";
 import Joi from "joi";
+import { toast } from "react-toastify";
 
 import PageHeader from "../components/common/pageHeader";
 import Input from "../components/common/input";
 import { useAuth } from "../context/auth.context";
+import usersService from "../services/usersService";
 
 function SignUp() {
-  const [serverError, setServerError] = useState("");
-
   const navigate = useNavigate();
-  const { user, createUser } = useAuth();
+  const { user, login: loginUser } = useAuth();
 
-  const { getFieldProps, handleSubmit, touched, errors, isValid, resetForm } =
-    useFormik({
-      validateOnMount: true,
-      initialValues: {
+  const form = useFormik({
+    validateOnMount: true,
+    initialValues: {
+      name: {
+        // Nested structure
         first: "",
         middle: "",
         last: "",
-        email: "",
-        phone: "",
-        password: "",
-        imageUrl: "",
-        imageAlt: "",
+      },
+      phone: "",
+      email: "",
+      password: "",
+      image: {
+        // Nested structure
+        url: "",
+        alt: "",
+      },
+      address: {
+        // Nested structure
         state: "",
         country: "",
         city: "",
         street: "",
-        houseNumber: "",
-        zip: "",
+        houseNumber: "", // Keep as string for input
+        zip: "", // Keep as string for input
       },
-      validate(values) {
-        const schema = Joi.object({
-          first: Joi.string().min(2).max(255).required().label("First Name"),
-          middle: Joi.string().min(0).max(255).allow("").label("Middle Name"),
-          last: Joi.string().min(2).max(255).required().label("Last Name"),
-          email: Joi.string()
-            .min(6)
-            .max(255)
-            .required()
-            .email({ tlds: false })
-            .label("Email"),
-          phone: Joi.string().min(9).max(15).required().label("Phone"),
-          password: Joi.string()
-            .min(9)
+      isBusiness: false,
+    },
+    validate(values) {
+      const schema = Joi.object({
+        name: Joi.object({
+          // Nested validation
+          first: Joi.string().min(2).max(256).required().label("First Name"),
+          middle: Joi.string()
+            .min(2)
+            .max(256)
+            .optional()
+            .allow("")
+            .label("Middle Name"),
+          last: Joi.string().min(2).max(256).required().label("Last Name"),
+        }).required(),
+        phone: Joi.string()
+          .min(9)
+          .max(11)
+          .required()
+          .pattern(/^0[5-9][0-9]{7,8}$/)
+          .label("Phone")
+          .messages({
+            "string.pattern.base":
+              '"Phone" must be a valid Israeli phone number',
+          }),
+        email: Joi.string()
+          .min(5)
+          .max(255)
+          .required()
+          .email({ tlds: false })
+          .label("Email"),
+        password: Joi.string()
+          .min(9)
+          .max(20)
+          .pattern(
+            new RegExp(
+              "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@%$#^&*\\-_*()])[A-Za-z\\d!@%$#^&*\\-_*()]{9,}$"
+            )
+          )
+          .required()
+          .label("Password")
+          .messages({
+            "string.pattern.base":
+              "Password must be at least 9 characters long and contain an uppercase letter, a lowercase letter, a number, and one of these special characters: !@%$#^&*-_*()",
+          }),
+        image: Joi.object({
+          url: Joi.string()
+            .min(14)
             .max(1024)
-            .required()
-            .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#%$^&*\-_()]).{9,}$/)
-            .label("Password"),
-          imageUrl: Joi.string().min(11).max(1024).allow("").label("Image URL"),
-          imageAlt: Joi.string().min(2).max(256).allow("").label("Image Alt"),
-          state: Joi.string().min(2).max(256).allow("").label("State"),
+            .uri()
+            .allow("")
+            .label("Image URL"),
+          alt: Joi.string().min(2).max(256).allow("").label("Image Alt"),
+        }).required(),
+        address: Joi.object({
+          state: Joi.string().min(0).max(256).allow("").label("State"),
           country: Joi.string().min(2).max(256).required().label("Country"),
           city: Joi.string().min(2).max(256).required().label("City"),
           street: Joi.string().min(2).max(256).required().label("Street"),
           houseNumber: Joi.number().min(1).required().label("House Number"),
-          zip: Joi.number().min(1).allow("").label("Zip"),
-        });
+          zip: Joi.number().integer().required().label("Zip"),
+        }).required(),
+        isBusiness: Joi.boolean().required(),
+      });
 
-        const { error } = schema.validate(values, { abortEarly: false });
+      const valuesToValidate = {
+        ...values,
+        address: {
+          ...values.address,
+          houseNumber: values.address.houseNumber
+            ? Number(values.address.houseNumber)
+            : undefined,
+          zip: values.address.zip ? Number(values.address.zip) : undefined,
+        },
+      };
 
-        if (!error) {
-          return null;
-        }
+      const { error } = schema.validate(valuesToValidate, {
+        abortEarly: false,
+      });
 
-        const errors = {};
-        for (const detail of error.details) {
-          errors[detail.path[0]] = detail.message;
-        }
+      if (!error) {
+        return null;
+      }
 
-        return errors;
-      },
-      onSubmit: async (values) => {
-        try {
-          await createUser({
-            name: {
-              first: values.first,
-              middle: values.middle,
-              last: values.last,
-            },
-            email: values.email,
-            password: values.password,
-            phone: values.phone,
-            image: {
-              url: values.imageUrl,
-              alt: values.imageAlt,
-            },
-            address: {
-              state: values.state,
-              country: values.country,
-              city: values.city,
-              street: values.street,
-              houseNumber: values.houseNumber,
-              zip: values.zip,
-            },
-            isBusiness: false, // Always false for regular users
-          });
-          navigate("/");
-        } catch (err) {
-          if (err.response?.status === 400) {
-            setServerError(err.response.data);
+      const errors = {};
+      for (const detail of error.details) {
+        const path = detail.path;
+        let current = errors;
+        for (let i = 0; i < path.length - 1; i++) {
+          if (!current[path[i]]) {
+            current[path[i]] = {};
           }
+          current = current[path[i]];
         }
-      },
-    });
+        current[path[path.length - 1]] = detail.message;
+      }
+      // *** Improved Logging ***
+      console.log("Validation Errors:", JSON.stringify(errors, null, 2));
+      return errors;
+    },
+    onSubmit: async (values) => {
+      try {
+        // Construct the payload matching the API structure
+        const body = {
+          name: {
+            first: values.name.first,
+            middle: values.name.middle || "", // Ensure middle is sent even if empty
+            last: values.name.last,
+          },
+          phone: values.phone,
+          email: values.email,
+          password: values.password,
+          image: {
+            url: values.image.url || "", // Ensure URL is sent even if empty
+            alt: values.image.alt || "", // Ensure Alt is sent even if empty
+          },
+          address: {
+            state: values.address.state || "", // Ensure state is sent even if empty
+            country: values.address.country,
+            city: values.address.city,
+            street: values.address.street,
+            // Convert to numbers for submission as required by API
+            houseNumber: Number(values.address.houseNumber),
+            zip: Number(values.address.zip),
+          },
+          isBusiness: values.isBusiness,
+        };
+
+        console.log("Submitting user data:", JSON.stringify(body, null, 2)); // Log the structured data being sent clearly
+
+        // *** Wait for user creation to succeed ***
+        await usersService.createUser(body);
+        toast.info("Registration request sent successfully."); // Indicate signup part finished
+
+        // *** Only attempt login AFTER successful creation ***
+        try {
+          console.log("Attempting auto-login...");
+          await loginUser({ email: body.email, password: body.password });
+          toast.success("Successfully registered and logged in!");
+          navigate("/");
+        } catch (loginError) {
+          console.error(
+            "Auto-login after signup failed:",
+            loginError.response || loginError
+          ); // Log login specific error
+          toast.warn(
+            "Registration successful, but auto-login failed. Please sign in manually."
+          );
+          navigate("/sign-in"); // Redirect to sign-in page if auto-login fails
+        }
+      } catch (signupError) {
+        // Catch errors specifically from createUser
+        console.error(
+          "Signup Error Response:",
+          signupError.response || signupError
+        ); // Log the full error response for debugging
+        const response = signupError.response;
+        if (response && response.status === 400) {
+          // Try to extract specific message from API if available
+          let errorMessage = "Registration failed. Please check your input.";
+          if (typeof response.data === "string") {
+            errorMessage = response.data; // API might return plain text error
+          } else if (
+            response.data &&
+            typeof response.data.message === "string"
+          ) {
+            errorMessage = response.data.message; // API might return { message: "..." }
+          } else if (
+            typeof response.data === "object" &&
+            response.data !== null
+          ) {
+            // Attempt to stringify if it's an object (might contain more details)
+            try {
+              errorMessage = JSON.stringify(response.data);
+            } catch (e) {
+              /* ignore stringify error */
+            }
+          }
+          toast.error(`Registration Error: ${errorMessage}`);
+        } else {
+          toast.error("An unexpected error occurred during registration.");
+          console.error(response); // Log other unexpected errors
+        }
+      }
+    },
+  });
 
   if (user) {
     return <Navigate to="/" />;
@@ -234,62 +233,65 @@ function SignUp() {
     <div className="container">
       <PageHeader title="Register" description="Create a new account" />
 
-      <form onSubmit={handleSubmit} noValidate autoComplete="off">
-        {serverError && <div className="alert alert-danger">{serverError}</div>}
+      <form onSubmit={form.handleSubmit} noValidate autoComplete="off">
+        {/* Removed serverError display */}
 
         <div className="row">
           {/* Left Column */}
           <div className="col-md-6">
             <Input
-              {...getFieldProps("first")}
-              error={touched.first && errors.first}
+              {...form.getFieldProps("name.first")} // Nested path
+              error={form.touched.name?.first && form.errors.name?.first} // Optional chaining
               type="text"
               label="First Name"
               placeholder="John"
               required
             />
             <Input
-              {...getFieldProps("last")}
-              error={touched.last && errors.last}
+              {...form.getFieldProps("name.last")} // Nested path
+              error={form.touched.name?.last && form.errors.name?.last} // Optional chaining
               type="text"
               label="Last Name"
               placeholder="Doe"
               required
             />
             <Input
-              {...getFieldProps("email")}
-              error={touched.email && errors.email}
+              {...form.getFieldProps("email")}
+              error={form.touched.email && form.errors.email}
               type="email"
               label="Email"
               placeholder="john@doe.com"
               required
             />
             <Input
-              {...getFieldProps("imageUrl")}
-              error={touched.imageUrl && errors.imageUrl}
-              type="text"
+              {...form.getFieldProps("image.url")} // Nested path
+              error={form.touched.image?.url && form.errors.image?.url} // Optional chaining
+              type="text" // Keep as text, validated as URI
               label="Image URL"
               placeholder="https://example.com/image.jpg"
             />
             <Input
-              {...getFieldProps("state")}
-              error={touched.state && errors.state}
+              {...form.getFieldProps("address.state")} // Nested path
+              error={form.touched.address?.state && form.errors.address?.state} // Optional chaining
               type="text"
               label="State"
               placeholder="California"
             />
             <Input
-              {...getFieldProps("city")}
-              error={touched.city && errors.city}
+              {...form.getFieldProps("address.city")} // Nested path
+              error={form.touched.address?.city && form.errors.address?.city} // Optional chaining
               type="text"
               label="City"
               placeholder="Los Angeles"
               required
             />
             <Input
-              {...getFieldProps("houseNumber")}
-              error={touched.houseNumber && errors.houseNumber}
-              type="number"
+              {...form.getFieldProps("address.houseNumber")} // Nested path
+              error={
+                form.touched.address?.houseNumber &&
+                form.errors.address?.houseNumber
+              } // Optional chaining
+              type="text" // Keep as text for input flexibility
               label="House Number"
               placeholder="123"
               required
@@ -299,57 +301,84 @@ function SignUp() {
           {/* Right Column */}
           <div className="col-md-6">
             <Input
-              {...getFieldProps("middle")}
-              error={touched.middle && errors.middle}
+              {...form.getFieldProps("name.middle")} // Nested path
+              error={form.touched.name?.middle && form.errors.name?.middle} // Optional chaining
               type="text"
               label="Middle Name"
               placeholder="M"
             />
             <Input
-              {...getFieldProps("phone")}
-              error={touched.phone && errors.phone}
-              type="text"
+              {...form.getFieldProps("phone")}
+              error={form.touched.phone && form.errors.phone}
+              type="tel" // Use type="tel" for phone numbers
               label="Phone"
               placeholder="050-0000000"
               required
             />
             <Input
-              {...getFieldProps("password")}
-              error={touched.password && errors.password}
+              {...form.getFieldProps("password")}
+              error={form.touched.password && form.errors.password}
               type="password"
               label="Password"
               required
             />
             <Input
-              {...getFieldProps("imageAlt")}
-              error={touched.imageAlt && errors.imageAlt}
+              {...form.getFieldProps("image.alt")} // Nested path
+              error={form.touched.image?.alt && form.errors.image?.alt} // Optional chaining
               type="text"
               label="Image Alt"
-              placeholder="Image description"
+              placeholder="A descriptive alt text"
             />
             <Input
-              {...getFieldProps("country")}
-              error={touched.country && errors.country}
+              {...form.getFieldProps("address.country")} // Nested path
+              error={
+                form.touched.address?.country && form.errors.address?.country
+              } // Optional chaining
               type="text"
               label="Country"
               placeholder="USA"
               required
             />
             <Input
-              {...getFieldProps("street")}
-              error={touched.street && errors.street}
+              {...form.getFieldProps("address.street")} // Nested path
+              error={
+                form.touched.address?.street && form.errors.address?.street
+              } // Optional chaining
               type="text"
               label="Street"
               placeholder="Main St"
               required
             />
             <Input
-              {...getFieldProps("zip")}
-              error={touched.zip && errors.zip}
-              type="number"
+              {...form.getFieldProps("address.zip")} // Nested path
+              error={form.touched.address?.zip && form.errors.address?.zip} // Optional chaining
+              type="text" // Keep as text for input flexibility
               label="Zip"
               placeholder="90001"
+              required // Added required based on API spec
             />
+          </div>
+        </div>
+
+        {/* isBusiness Checkbox */}
+        <div className="row mt-3">
+          <div className="col-12">
+            <div className="form-check">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id="isBusinessCheckbox"
+                {...form.getFieldProps("isBusiness")}
+                checked={form.values.isBusiness}
+              />
+              <label className="form-check-label" htmlFor="isBusinessCheckbox">
+                Register as Business
+              </label>
+            </div>
+            {/* Error display for checkbox if needed */}
+            {form.touched.isBusiness && form.errors.isBusiness && (
+              <div className="text-danger mt-1">{form.errors.isBusiness}</div>
+            )}
           </div>
         </div>
 
@@ -358,17 +387,21 @@ function SignUp() {
           <button
             type="button"
             className="btn btn-danger"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/")} // Navigate back
           >
             Cancel
           </button>
-          <button type="button" className="btn btn-info" onClick={resetForm}>
-            <i className="bi bi-arrow-clockwise"></i>
+          <button
+            type="button"
+            className="btn btn-info"
+            onClick={() => form.resetForm()} // Use formik's resetForm
+          >
+            <i className="bi bi-arrow-clockwise"></i> Reset
           </button>
           <button
             type="submit"
-            disabled={!isValid}
-            className="btn btn-secondary"
+            disabled={!form.isValid}
+            className="btn btn-primary" // Changed to primary for submit action
           >
             Submit
           </button>

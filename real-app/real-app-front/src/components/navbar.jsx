@@ -1,9 +1,9 @@
-import { Link, NavLink } from "react-router";
+import { Link, NavLink } from "react-router-dom"; // Corrected import
 import Logo from "./logo";
 import { useAuth } from "../context/auth.context";
 
 function NavBar() {
-  const { user } = useAuth();
+  const { user } = useAuth(); // user contains _id, isBusiness, isAdmin or is null
 
   return (
     <nav
@@ -27,18 +27,15 @@ function NavBar() {
         </button>
 
         <div className="collapse navbar-collapse" id="navbarsExample04">
+          {/* Left side links */}
           <ul className="navbar-nav me-auto mb-2 mb-md-0">
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/">
-                Home
-              </NavLink>
-            </li>
             <li className="nav-item">
               <NavLink className="nav-link" to="/about">
                 About
               </NavLink>
             </li>
 
+            {/* Links for logged-in users */}
             {user && (
               <li className="nav-item">
                 <NavLink className="nav-link" to="/favorites">
@@ -47,14 +44,7 @@ function NavBar() {
               </li>
             )}
 
-            {/* {user?.biz && (
-              <li className="nav-item">
-                <NavLink className="nav-link" to="/my-cards">
-                  My Cards
-                </NavLink>
-              </li>
-            )} */}
-
+            {/* Links for business users (includes admins) */}
             {user?.isBusiness && (
               <li className="nav-item">
                 <NavLink className="nav-link" to="/my-cards">
@@ -62,16 +52,29 @@ function NavBar() {
                 </NavLink>
               </li>
             )}
+
+            {/* Links for admin users */}
+            {user?.isAdmin && (
+              <li className="nav-item">
+                {/* Add NavLink to Admin Dashboard */}
+                <NavLink className="nav-link" to="/admin-dashboard">
+                  Admin Dashboard
+                </NavLink>
+              </li>
+            )}
           </ul>
 
+          {/* Right side links */}
           <ul className="navbar-nav ms-auto mb-2 mb-md-0">
             {user ? (
+              // Logged In User
               <li className="nav-item">
                 <NavLink className="nav-link" to="/sign-out">
                   Sign Out
                 </NavLink>
               </li>
             ) : (
+              // Logged Out User
               <>
                 <li className="nav-item">
                   <NavLink className="nav-link" to="/sign-in">
@@ -81,11 +84,6 @@ function NavBar() {
                 <li className="nav-item">
                   <NavLink className="nav-link" to="/sign-up">
                     Sign Up
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink className="nav-link" to="/sign-up-biz">
-                    Sign Up Biz
                   </NavLink>
                 </li>
               </>

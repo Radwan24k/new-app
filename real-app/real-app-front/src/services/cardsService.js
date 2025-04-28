@@ -1,108 +1,42 @@
-// import httpService from "./httpService";
-
-// {
-//   bizName: Joi.string().min(2).max(255).required(),
-//   bizDescription: Joi.string().min(2).max(1024).required(),
-//   bizAddress: Joi.string().min(2).max(400).required(),
-//   bizPhone: Joi.string()
-//     .min(9)
-//     .max(10)
-//     .required()
-//     .regex(/^0[2-9]\d{7,8}$/),
-//   bizImage: Joi.string().min(11).max(1024)
-// }
-
-// export function createCard(card) {
-//   return httpService.post("/cards", card);
-// }
-
-// export function getAll() {
-//   return httpService.get("/cards");
-// }
-
-// export function getCard(id) {
-//   return httpService.get(`/cards/${id}`);
-// }
-
-// export function deleteCard(id) {
-//   return httpService.delete(`/cards/${id}`);
-// }
-
-// export function updateCard(id, card) {
-//   return httpService.put(`/cards/${id}`, card);
-// }
-
-// const cardsService = {
-//   createCard,
-//   getAll,
-//   getCard,
-//   deleteCard,
-//   updateCard,
-// };
-
-// export default cardsService;
-
 import httpService from "./httpService";
 
 export function createCard(card) {
+  // Requires business user token
   return httpService.post("/cards", card);
 }
 
-export function getAll() {
+export function getAllCards() {
+  // Renamed from getAll for clarity
   return httpService.get("/cards");
 }
 
-export function getCard(id) {
+export function getCardById(id) {
+  // Renamed from getCard for clarity
   return httpService.get(`/cards/${id}`);
 }
 
-export function deleteCard(id) {
+export function deleteCardById(id) {
+  // Renamed from deleteCard, requires owner/admin token
   return httpService.delete(`/cards/${id}`);
 }
 
-export function updateCard(id, card) {
+export function updateCardById(id, card) {
+  // Renamed from updateCard, requires owner/admin token
   return httpService.put(`/cards/${id}`, card);
 }
 
 export function getMyCards() {
-  // Get all cards created by the current user
+  // Requires user token
   return httpService.get("/cards/my-cards");
 }
 
-export function likeCard(id) {
-  // Like or unlike a card
+export function likeUnlikeCard(id) {
+  // Renamed from likeCard, requires user token
+  // Toggles like status for the logged-in user
   return httpService.patch(`/cards/${id}`);
 }
 
-// const cardsService = {
-//   createCard,
-//   getAll,
-//   getCard,
-//   deleteCard,
-//   updateCard,
-//   getMyCards,
-//   likeCard,
-// };
-
-export function getFavorites() {
-  return httpService.get("/cards/favorites");
+export function patchBizNumber(id, bizNumber) {
+  // Requires admin token
+  return httpService.patch(`/cards/${id}`, { bizNumber });
 }
-
-export function toggleFavorite(cardId) {
-  return httpService.patch(`/cards/${cardId}/favorite`);
-  console.log("Toggling favorite for card ID:", cardId);
-}
-
-const cardsService = {
-  createCard,
-  getAll,
-  getCard,
-  deleteCard,
-  updateCard,
-  getMyCards,
-  likeCard,
-  getFavorites,
-  toggleFavorite,
-};
-
-export default cardsService;
