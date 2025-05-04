@@ -12,10 +12,10 @@ function About() {
         <div className="col-12">
           <h2>Welcome to the Business Card App!</h2>
           <p>
-            This application is designed to help users create, manage, and share
-            digital business cards. Whether you're a business professional
-            looking to network or someone wanting to keep track of contacts,
-            this app provides a simple and efficient solution.
+            Hello, I'm Radwan K, a 23-year-old full-stack developer with a strong foundation in both front-end and
+                back-end technologies. Currently, I am pursuing my studies in Information Systems at the University of
+                Haifa. My academic journey has equipped me with a solid understanding of software development principles
+                and practices.
           </p>
 
           <h3>Key Features:</h3>
